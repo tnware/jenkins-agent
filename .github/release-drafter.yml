@@ -17,7 +17,6 @@ categories:
       - chore
       - deps
 change-template: '- $TITLE (#$NUMBER) by @$AUTHOR'
-change-title-escapes: '\r\n'
 version-resolver:
   major:
     labels:
