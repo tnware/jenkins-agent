@@ -28,6 +28,8 @@ RUN install -m 0755 -d /etc/apt/keyrings \
     docker-compose-plugin \
     && apt-get clean
 
+# Add the jenkins user to the docker group
+RUN usermod -aG docker jenkins
 
 # Install Helm
 # RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
