@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        continue-on-error: true
+        uses: metcalfc/changelog-generator@v4.3.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Changes in this Release
+
+            ${{ steps.changelog.outputs.changelog || 'See git log for changes.' }}
+
+            ## Docker Images
+
+            - **Docker Hub**: `${{ secrets.DOCKERHUB_USERNAME }}/jenkins-agent:${{ github.ref_name }}`
+            - **GitHub Container Registry**: `ghcr.io/${{ github.repository }}/jenkins-agent:${{ github.ref_name }}`
+
+            ## Usage
+
+            ```bash
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/jenkins-agent:${{ github.ref_name }}
+            # or
+            docker pull ghcr.io/${{ github.repository }}/jenkins-agent:${{ github.ref_name }}
+            ```
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

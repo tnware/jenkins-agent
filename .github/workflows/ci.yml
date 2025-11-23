@@ -1,0 +1,88 @@
+name: CI
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        branches:
+            - main
+
+jobs:
+    lint-dockerfile:
+        name: Lint Dockerfile
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Run Hadolint
+              uses: hadolint/hadolint-action@v3.1.0
+              with:
+                  dockerfile: Dockerfile
+                  format: tty
+                  failure-threshold: warning
+                  ignore: DL3008,DL3009
+
+    validate-dockerfile:
+        name: Validate Dockerfile
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Validate Dockerfile syntax
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: false
+                  no-cache: true
+
+    test-build:
+        name: Test Build
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Docker image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: false
+                  tags: jenkins-agent:test
+                  load: true
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Verify image size
+              run: |
+                  SIZE=$(docker images jenkins-agent:test --format "{{.Size}}")
+                  echo "Image size: $SIZE"
+                  # Add size check if needed
+                  # if [ "$SIZE" -gt "2GB" ]; then
+                  #   echo "Image too large!"
+                  #   exit 1
+                  # fi
+
+            - name: Test basic functionality
+              run: |
+                  echo "Testing installed tools..."
+                  docker run --rm jenkins-agent:test python3 --version
+                  docker run --rm jenkins-agent:test node --version
+                  docker run --rm jenkins-agent:test npm --version
+                  docker run --rm jenkins-agent:test docker --version
+                  docker run --rm jenkins-agent:test git --version
+                  docker run --rm jenkins-agent:test jq --version
+                  echo "All tools verified!"
