@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     lsb-release \
     # Dependencies for WeasyPrint/Pango/Cairo (PDF generation)
     libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info \
+    # Database clients
+    postgresql-client \
     && apt-get clean
 
 # Install Docker using official Docker repository
