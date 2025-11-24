@@ -36,5 +36,5 @@ clean: ## Remove local Docker images
 
 lint: ## Lint Dockerfile using hadolint
 	@echo "Linting Dockerfile..."
-	@docker run --rm -v "$(PWD):/workspace" -w /workspace hadolint/hadolint hadolint Dockerfile --config .github/hadolint.yaml
+	@docker run --rm -v "$(PWD):/workspace" -w /workspace hadolint/hadolint hadolint Dockerfile
 
