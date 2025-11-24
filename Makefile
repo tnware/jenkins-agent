@@ -5,7 +5,7 @@ IMAGE_NAME := ghcr.io/tnware/jenkins-agent
 VERSION := v0.1.6
 LATEST_TAG := latest
 
-.PHONY: help build push build-push test clean
+.PHONY: help build push build-push test clean lint
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -33,4 +33,8 @@ test: ## Test the Docker image (basic validation)
 
 clean: ## Remove local Docker images
 	docker rmi $(IMAGE_NAME):$(VERSION) $(IMAGE_NAME):$(LATEST_TAG) || true
+
+lint: ## Lint Dockerfile using hadolint
+	@echo "Linting Dockerfile..."
+	@docker run --rm -v "$(PWD):/workspace" -w /workspace hadolint/hadolint hadolint Dockerfile --config .github/hadolint.yaml
 
