@@ -13,7 +13,7 @@ A Jenkins agent Docker image designed to run in Kubernetes with support for Dock
 
 ## Image
 
-The image is published to: `ghcr.io/tnware/jenkins-agent:v0.1.3`
+The image is published to: `ghcr.io/tnware/jenkins-agent:latest`
 
 ## Usage
 
@@ -95,7 +95,14 @@ And remove the cleanup step from the `post` section (containers are managed by K
 ## Building the Image
 
 ```bash
-docker build -t ghcr.io/tnware/jenkins-agent:v0.1.3 .
+docker build -t ghcr.io/tnware/jenkins-agent:v0.1.6 .
+```
+
+Or use the Makefile:
+
+```bash
+make build
+make push
 ```
 
 ## Requirements
@@ -132,4 +139,4 @@ docker build -t ghcr.io/tnware/jenkins-agent:v0.1.3 .
 
 ## License
 
-[Add your license here]
+See [LICENSE](LICENSE) file for details.
