@@ -1,5 +1,7 @@
 FROM jenkins/inbound-agent:latest
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 USER root
 
 # Install prerequisites
@@ -16,7 +18,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info \
     # Database clients
     postgresql-client \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Docker using official Docker repository
 RUN install -m 0755 -d /etc/apt/keyrings \
@@ -30,7 +33,8 @@ RUN install -m 0755 -d /etc/apt/keyrings \
     containerd.io \
     docker-buildx-plugin \
     docker-compose-plugin \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Add the jenkins user to the docker group
 RUN usermod -aG docker jenkins
@@ -43,9 +47,9 @@ RUN mkdir -p /home/jenkins/.nvm && \
 USER jenkins
 ENV NVM_DIR=/home/jenkins/.nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash && \
-    echo 'export NVM_DIR="$HOME/.nvm"' >> /home/jenkins/.bashrc && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> /home/jenkins/.bashrc && \
-    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> /home/jenkins/.bashrc
+    echo "export NVM_DIR=\"\$HOME/.nvm\"" >> /home/jenkins/.bashrc && \
+    echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\"" >> /home/jenkins/.bashrc && \
+    echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \. \"\$NVM_DIR/bash_completion\"" >> /home/jenkins/.bashrc
 
 # Install Helm
 # RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash

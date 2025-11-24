@@ -1,0 +1,6 @@
+ignored:
+  - DL3007  # Using latest is acceptable for maintained base images
+  - DL3008  # Pin versions in apt-get install (often impractical)
+
+failure-threshold: warning
+
