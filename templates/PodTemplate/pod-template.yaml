@@ -14,7 +14,7 @@ spec:
       resources:
         requests:
           memory: "1Gi"
-          cpu: "500m"
+          cpu: "1000m"
         limits:
           memory: "4Gi"
           cpu: "2000m"
@@ -40,10 +40,10 @@ spec:
       resources:
         requests:
           memory: "512Mi"
-          cpu: "250m"
+          cpu: "1000m"
         limits:
           memory: "2Gi"
-          cpu: "1000m"
+          cpu: "2000m"
       # Explicitly configure dockerd to listen on the shared socket and TCP
       args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=overlay2"]
       lifecycle:
