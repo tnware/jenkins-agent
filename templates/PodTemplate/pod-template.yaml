@@ -14,10 +14,10 @@ spec:
       resources:
         requests:
           memory: "1Gi"
-          cpu: "1000m"
+          cpu: "2000m"
         limits:
           memory: "4Gi"
-          cpu: "2000m"
+          cpu: "4000m"
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/workspace
@@ -29,6 +29,16 @@ spec:
         # Make NVM available in the container
         - name: NVM_DIR
           value: /home/jenkins/.nvm
+        # PostgreSQL connection (via sidecar)
+        - name: POSTGRES_HOST
+          value: localhost
+        - name: POSTGRES_PORT
+          value: "5432"
+        # Redis connection (via sidecar)
+        - name: REDIS_HOST
+          value: localhost
+        - name: REDIS_PORT
+          value: "6379"
       tty: true
 
     # Docker-in-Docker (DinD) sidecar - provides Docker daemon
@@ -40,10 +50,10 @@ spec:
       resources:
         requests:
           memory: "512Mi"
-          cpu: "1000m"
+          cpu: "2000m"
         limits:
           memory: "2Gi"
-          cpu: "2000m"
+          cpu: "4000m"
       # Explicitly configure dockerd to listen on the shared socket and TCP
       args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=overlay2"]
       lifecycle:
@@ -60,6 +70,43 @@ spec:
           value: ""
         - name: DOCKER_HOST
           value: unix:///var/run/dind/docker.sock
+
+    # PostgreSQL sidecar (alternative to docker run)
+    - name: postgres
+      image: postgres:14
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: password
+        - name: POSTGRES_DB
+          value: django
+      ports:
+        - containerPort: 5432
+          name: postgres
+
+    # Redis sidecar (alternative to docker run)
+    - name: redis
+      image: redis:latest
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      ports:
+        - containerPort: 6379
+          name: redis
 
   volumes:
     - name: workspace-volume

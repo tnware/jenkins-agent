@@ -55,7 +55,8 @@ spec:
           memory: "2Gi"
           cpu: "1000m"
       # Explicitly configure dockerd to listen on the shared socket and TCP
-      args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=overlay2"]
+      # Note: Using vfs storage driver for NFS compatibility (overlay2 doesn't work with NFS)
+      args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=vfs"]
       lifecycle:
         postStart:
           exec:

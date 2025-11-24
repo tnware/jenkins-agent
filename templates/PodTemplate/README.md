@@ -1,5 +1,22 @@
 # Jenkins Pod Template Configuration Guide
 
+## Available Templates
+
+This directory contains multiple pod template options:
+
+1. **`pod-template.yaml`** - Full-featured template with:
+   - Jenkins agent container
+   - Docker-in-Docker (DinD) sidecar
+   - PostgreSQL sidecar
+   - Redis sidecar
+   - **Use when**: You need Docker commands and database services in your pipeline
+
+2. **`pod-template-alternative.yaml`** - Alternative full-featured template with different resource allocations
+
+3. **`pod-template-minimal.yaml`** - Minimal template with:
+   - Jenkins agent container only
+   - **Use when**: You don't need Docker or sidecar services (simpler, lighter weight)
+
 ## Quick Setup
 
 ### Option 1: Using Jenkins UI
@@ -97,6 +114,7 @@ jenkins:
 **Note**: The service account is optional. If your setup was working before without one, you don't need it. The pod will use the default service account in your namespace.
 
 Only create a service account if you need:
+
 - Access to private container registries (imagePullSecrets)
 - Specific RBAC permissions for cluster operations
 - Custom security contexts
@@ -124,6 +142,60 @@ kubectl patch serviceaccount jenkins-agent \
   -n <your-namespace>
 ```
 
+## Docker Storage Driver and NFS Compatibility
+
+### Important: NFS Storage Requirements
+
+If you're using an **NFS-backed PersistentVolumeClaim** for the `docker-storage` volume, you **must** use the `vfs` storage driver instead of `overlay2`.
+
+**Why?** The `overlay2` storage driver requires filesystem features (like extended attributes, certain mount options) that NFS doesn't support. You'll see errors like:
+
+```text
+failed to mount overlay: invalid argument
+failed to start daemon: error initializing graphdriver: driver not supported: overlay2
+```
+
+### Storage Driver Configuration
+
+The pod template is configured with `--storage-driver=vfs` for NFS compatibility. This is already set in the template:
+
+```yaml
+args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=vfs"]
+```
+
+**Storage Driver Options:**
+
+- **`vfs`** (default in template):
+  - ✅ Works with NFS
+  - ✅ Works with all storage backends
+  - ⚠️ Slower performance (no copy-on-write)
+  - ⚠️ Higher disk usage
+
+- **`overlay2`** (not compatible with NFS):
+  - ✅ Better performance
+  - ✅ Lower disk usage
+  - ❌ **Does NOT work with NFS**
+  - ✅ Works with local storage, EBS, etc.
+
+**If you're NOT using NFS**, you can change the storage driver to `overlay2` for better performance:
+
+```yaml
+args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=overlay2"]
+```
+
+### Using PVC with NFS
+
+To use a PersistentVolumeClaim with NFS for Docker storage caching:
+
+```yaml
+volumes:
+  - name: docker-storage
+    persistentVolumeClaim:
+      claimName: jenkins-docker-cache-pvc
+```
+
+The template is already configured to work with NFS PVCs using the `vfs` storage driver.
+
 ## Pipeline Usage
 
 In your Jenkinsfile, specify the label:
@@ -138,3 +210,27 @@ pipeline {
 ```
 
 Your existing pipeline with `docker run` commands will work without modifications when using the DinD pod template.
+
+## Minimal Template Usage
+
+If you're using `pod-template-minimal.yaml` (no Docker-in-Docker), you can still use Docker commands if your Kubernetes nodes have Docker socket access, or use alternative container tools like `podman` or `buildah`. However, the minimal template is best for pipelines that don't require Docker at all.
+
+```groovy
+pipeline {
+    agent {
+        label 'jenkins-agent'  // Use a different label for minimal template
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh '''
+                    # No Docker available, but you can use:
+                    # - npm, yarn, maven, gradle, etc.
+                    # - kubectl (if configured)
+                    # - Any tools installed in the jenkins-agent image
+                '''
+            }
+        }
+    }
+}
+```
