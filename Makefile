@@ -34,7 +34,8 @@ test: ## Test the Docker image (basic validation)
 		helm version && \
 		nc -h && \
 		yq --version && \
-		envsubst --version"
+		envsubst --version && \
+		go version"
 	@echo "All tests passed!"
 
 clean: ## Remove local Docker images
