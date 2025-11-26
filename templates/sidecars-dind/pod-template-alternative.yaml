@@ -14,10 +14,10 @@ spec:
       resources:
         requests:
           memory: "1Gi"
-          cpu: "2000m"
+          cpu: "500m"
         limits:
           memory: "4Gi"
-          cpu: "4000m"
+          cpu: "2000m"
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/workspace
@@ -50,12 +50,13 @@ spec:
       resources:
         requests:
           memory: "512Mi"
-          cpu: "2000m"
+          cpu: "250m"
         limits:
           memory: "2Gi"
-          cpu: "4000m"
+          cpu: "1000m"
       # Explicitly configure dockerd to listen on the shared socket and TCP
-      args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=overlay2"]
+      # Note: Using vfs storage driver for NFS compatibility (overlay2 doesn't work with NFS)
+      args: ["--host=unix:///var/run/dind/docker.sock", "--host=tcp://0.0.0.0:2375", "--storage-driver=vfs"]
       lifecycle:
         postStart:
           exec:
@@ -71,7 +72,7 @@ spec:
         - name: DOCKER_HOST
           value: unix:///var/run/dind/docker.sock
 
-    # PostgreSQL sidecar (alternative to docker run)
+    # PostgreSQL sidecar
     - name: postgres
       image: postgres:14
       imagePullPolicy: IfNotPresent
@@ -93,7 +94,7 @@ spec:
         - containerPort: 5432
           name: postgres
 
-    # Redis sidecar (alternative to docker run)
+    # Redis sidecar
     - name: redis
       image: redis:latest
       imagePullPolicy: IfNotPresent
