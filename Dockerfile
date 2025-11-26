@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     ca-certificates \
     gnupg \
     lsb-release \
+    # Network and Debugging Tools
+    netcat-openbsd dnsutils iputils-ping \
+    # Text Processing
+    gettext-base \
     # Dependencies for WeasyPrint/Pango/Cairo (PDF generation)
     libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info \
     # Database clients
@@ -36,6 +40,21 @@ RUN install -m 0755 -d /etc/apt/keyrings \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install yq
+RUN wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
+    chmod +x /usr/bin/yq
+
+# Install Helm
+RUN curl -fsSL -o helm.tar.gz https://get.helm.sh/helm-v3.13.2-linux-amd64.tar.gz && \
+    tar -zxvf helm.tar.gz && \
+    mv linux-amd64/helm /usr/local/bin/helm && \
+    rm -rf linux-amd64 helm.tar.gz
+
+# Install kubectl
+RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin
+
 # Add the jenkins user to the docker group
 RUN usermod -aG docker jenkins
 
@@ -50,11 +69,3 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | b
     echo "export NVM_DIR=\"\$HOME/.nvm\"" >> /home/jenkins/.bashrc && \
     echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\"" >> /home/jenkins/.bashrc && \
     echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \. \"\$NVM_DIR/bash_completion\"" >> /home/jenkins/.bashrc
-
-# Install Helm
-# RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-
-# # Install kubectl
-# RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" \
-#     && chmod +x kubectl \
-#     && mv kubectl /usr/local/bin
