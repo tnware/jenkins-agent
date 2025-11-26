@@ -55,6 +55,16 @@ RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -
     && chmod +x kubectl \
     && mv kubectl /usr/local/bin
 
+# Install Golang
+ENV GO_VERSION=1.22.0
+RUN curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -o go.tar.gz && \
+    tar -C /usr/local -xzf go.tar.gz && \
+    rm go.tar.gz
+
+ENV PATH=$PATH:/usr/local/go/bin
+ENV GOPATH=/home/jenkins/go
+ENV PATH=$PATH:$GOPATH/bin
+
 # Add the jenkins user to the docker group
 RUN usermod -aG docker jenkins
 
