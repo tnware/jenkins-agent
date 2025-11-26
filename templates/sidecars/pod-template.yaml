@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: agent
+spec:
+  # Optional: Only needed if you require specific permissions (e.g., private registry access)
+  # serviceAccountName: jenkins-agent
+  containers:
+    # Main Jenkins agent container
+    - name: jnlp
+      image: ghcr.io/tnware/jenkins-agent:v0.1.6
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "2000m"
+        limits:
+          memory: "4Gi"
+          cpu: "4000m"
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/workspace
+      env:
+        # Make NVM available in the container
+        - name: NVM_DIR
+          value: /home/jenkins/.nvm
+        # PostgreSQL connection (via sidecar)
+        - name: POSTGRES_HOST
+          value: localhost
+        - name: POSTGRES_PORT
+          value: "5432"
+        # Redis connection (via sidecar)
+        - name: REDIS_HOST
+          value: localhost
+        - name: REDIS_PORT
+          value: "6379"
+      tty: true
+
+    # PostgreSQL sidecar
+    - name: postgres
+      image: postgres:14
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      env:
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: password
+        - name: POSTGRES_DB
+          value: django
+      ports:
+        - containerPort: 5432
+          name: postgres
+
+    # Redis sidecar
+    - name: redis
+      image: redis:latest
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "50m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+      ports:
+        - containerPort: 6379
+          name: redis
+
+  volumes:
+    - name: workspace-volume
+      emptyDir: {}
