@@ -41,9 +41,15 @@ jobs:
       - name: Test Docker image
         run: |
           echo "Testing built image..."
-          docker run --rm test-image:latest docker --version
-          docker run --rm test-image:latest python3 --version
-          docker run --rm test-image:latest node --version
-          docker run --rm test-image:latest npm --version
+          docker run --rm --entrypoint /bin/bash test-image:latest -c " \
+            docker --version && \
+            python3 --version && \
+            node --version && \
+            npm --version && \
+            kubectl version --client && \
+            helm version && \
+            nc -h && \
+            yq --version && \
+            envsubst --version"
           echo "All tests passed!"
 

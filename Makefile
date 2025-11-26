@@ -25,10 +25,16 @@ build-push: build push ## Build and push the Docker image
 
 test: ## Test the Docker image (basic validation)
 	@echo "Testing Docker image..."
-	@docker run --rm $(IMAGE_NAME):$(VERSION) docker --version
-	@docker run --rm $(IMAGE_NAME):$(VERSION) python3 --version
-	@docker run --rm $(IMAGE_NAME):$(VERSION) node --version
-	@docker run --rm $(IMAGE_NAME):$(VERSION) npm --version
+	@docker run --rm --entrypoint /bin/bash $(IMAGE_NAME):$(VERSION) -c " \
+		docker --version && \
+		python3 --version && \
+		node --version && \
+		npm --version && \
+		kubectl version --client && \
+		helm version && \
+		nc -h && \
+		yq --version && \
+		envsubst --version"
 	@echo "All tests passed!"
 
 clean: ## Remove local Docker images
