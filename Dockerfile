@@ -65,6 +65,11 @@ ENV PATH=$PATH:/usr/local/go/bin
 ENV GOPATH=/home/jenkins/go
 ENV PATH=$PATH:$GOPATH/bin
 
+# Create GOPATH directory and install wails
+RUN mkdir -p /home/jenkins/go/bin && \
+    chown -R jenkins:jenkins /home/jenkins/go && \
+    su jenkins -c "go install github.com/wailsapp/wails/v2/cmd/wails@latest"
+
 # Add the jenkins user to the docker group
 RUN usermod -aG docker jenkins
 
