@@ -25,6 +25,19 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Wails dependencies (GTK3 and WebKit2GTK)
+# Try libwebkit2gtk-4.0-dev first, fallback to libwebkit2gtk-4.1-dev or libwebkit2gtk-dev if not available
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+    pkg-config \
+    libgtk-3-dev && \
+    (apt-get install --no-install-recommends -y libwebkit2gtk-4.0-dev || \
+     apt-get install --no-install-recommends -y libwebkit2gtk-4.1-dev || \
+     apt-get install --no-install-recommends -y libwebkit2gtk-dev || \
+     echo "Warning: Could not install libwebkit2gtk-dev package. Run 'wails doctor' to check dependencies.") && \
+    apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Docker using official Docker repository
 RUN install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
@@ -66,9 +79,11 @@ ENV GOPATH=/home/jenkins/go
 ENV PATH=$PATH:$GOPATH/bin
 
 # Create GOPATH directory and install wails
+# Note: Run 'wails doctor' after container startup to verify all dependencies are correctly installed
 RUN mkdir -p /home/jenkins/go/bin && \
     chown -R jenkins:jenkins /home/jenkins/go && \
-    su jenkins -c "go install github.com/wailsapp/wails/v2/cmd/wails@latest"
+    su jenkins -c "go install github.com/wailsapp/wails/v2/cmd/wails@latest" && \
+    su jenkins -c "wails version"
 
 # Add the jenkins user to the docker group
 RUN usermod -aG docker jenkins
