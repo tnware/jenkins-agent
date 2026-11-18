@@ -4,7 +4,7 @@ A Jenkins agent Docker image designed to run in Kubernetes.
 
 ## Features
 
-- Based on `jenkins/inbound-agent:latest`
+- Based on the Jenkins inbound agent with Java 21
 - Docker CLI installed and configured
 - Python 3 with pip
 - Node.js and npm
@@ -20,7 +20,7 @@ The image is published to: `ghcr.io/tnware/jenkins-agent:latest`
 ## Building the Image
 
 ```bash
-docker build -t ghcr.io/tnware/jenkins-agent:v0.1.6 .
+docker build -t ghcr.io/tnware/jenkins-agent:local .
 ```
 
 Or use the Makefile:

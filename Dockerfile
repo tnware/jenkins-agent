@@ -1,4 +1,4 @@
-FROM jenkins/inbound-agent:latest
+FROM jenkins/inbound-agent:jdk21@sha256:25a3704f7de4d3d0becc441f5683a227556658df1473865ee94c5232355678ab
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -99,3 +99,8 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | b
     echo "export NVM_DIR=\"\$HOME/.nvm\"" >> /home/jenkins/.bashrc && \
     echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\"" >> /home/jenkins/.bashrc && \
     echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \. \"\$NVM_DIR/bash_completion\"" >> /home/jenkins/.bashrc
+
+# Verify the agent runs on Java 21 before a build can publish the image.
+RUN java -XshowSettings:properties -version 2>&1 \
+    | grep -Eq '^[[:space:]]*java\.specification\.version = 21[[:space:]]*$' && \
+    java -jar /usr/share/jenkins/agent.jar -version
