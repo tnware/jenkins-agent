@@ -1,4 +1,4 @@
-FROM jenkins/inbound-agent:jdk21@sha256:25a3704f7de4d3d0becc441f5683a227556658df1473865ee94c5232355678ab
+FROM jenkins/inbound-agent:jdk21@sha256:5c9b6fe9a7ccc50bcdcb039d64ac2c2aa3fe9cde3a6ba6f7c80058257452d391
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
